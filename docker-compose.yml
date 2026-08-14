@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  # --- SERVICE NEXTCLOUD ---
+  nextcloud:
+    image: nextcloud:stable-apache
+    container_name: nextcloud_app
+    restart: unless-stopped
+    ports:
+      - "8080:80" # Accessible sur http://IP_DE_TON_HOMELAB:8080
+    environment:
+      - NEXTCLOUD_ADMIN_USER=admin
+      - NEXTCLOUD_ADMIN_PASSWORD=MonMotDePasseSecurise123! # ⚠️ Change ce mot de passe
+    volumes:
+      - nextcloud_data:/var/www/html
+      # On relie les dossiers de Whisper directement dans le stockage de Nextcloud
+      - ./chapitres_audio:/var/www/html/data/admin/files/chapitres_audio
+      - ./chapitres_ecrits:/var/www/html/data/admin/files/chapitres_ecrits
+      - ./archives_audio:/var/www/html/data/admin/files/archives_audio
+
+  # --- SERVICE WHISPER PIPELINE ---
+  whisper-transcriber:
+    build: ./app
+    container_name: whisper_transcriber
+    restart: unless-stopped
+    environment:
+      - MODEL_SIZE=turbo
+      - DEVICE=cpu # Change par "cuda" si tu as une GPU NVIDIA
+    volumes:
+      - ./chapitres_audio:/data/chapitres_audio
+      - ./chapitres_ecrits:/data/chapitres_ecrits
+      - ./archives_audio:/data/archives_audio
+    depends_on:
+      - nextcloud
+
+volumes:
+  nextcloud_data:
