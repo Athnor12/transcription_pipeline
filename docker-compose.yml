@@ -14,9 +14,9 @@ services:
     volumes:
       - nextcloud_data:/var/www/html
       # On relie les dossiers de Whisper directement dans le stockage de Nextcloud
-      - ./chapitres_audio:/var/www/html/data/admin/files/chapitres_audio
-      - ./chapitres_ecrits:/var/www/html/data/admin/files/chapitres_ecrits
-      - ./archives_audio:/var/www/html/data/admin/files/archives_audio
+      - ./chapitres_audio:/var/www/html/data/Athnor/files/chapitres_audio
+      - ./chapitres_ecrits:/var/www/html/data/Athnor/files/chapitres_ecrits
+      - ./archives_audio:/var/www/html/data/Athnor/files/archives_audio
 
   # --- SERVICE WHISPER PIPELINE ---
   whisper-transcriber:
@@ -24,6 +24,7 @@ services:
     container_name: whisper_transcriber
     restart: unless-stopped
     environment:
+      - PYTHONUNBUFFERED=1
       - MODEL_SIZE=turbo
       - DEVICE=cpu # Change par "cuda" si tu as une GPU NVIDIA
     volumes:
