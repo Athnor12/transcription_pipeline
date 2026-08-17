@@ -67,8 +67,8 @@ def traiter_audios(model):
         with open(chemin_txt, "w", encoding="utf-8") as f:
             f.write(texte_propre.strip())
 
-	# Réindexe les fichiers .txt dans  Nextcloud
-	trigger_nextcloud_scan()
+        # Réindexe les fichiers .txt dans  Nextcloud
+        trigger_nextcloud_scan()
 
         # Archivage Audio
         shutil.move(chemin_audio, os.path.join(DOSSIER_ARCHIVES, nom_fichier))
