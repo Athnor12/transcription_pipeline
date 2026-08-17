@@ -3,6 +3,7 @@ import glob
 import shutil
 import time
 from faster_whisper import WhisperModel
+import subprocess
 
 # --- CONFIGURATION VIA VARIABLES D'ENVIRONNEMENT ---
 DOSSIER_SOURCE = os.getenv("DOSSIER_SOURCE", "/data/chapitres_audio")
@@ -15,6 +16,13 @@ def charger_modele():
     print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Chargement du modèle Whisper ({MODEL_SIZE} sur {DEVICE})...", flush=True)
     # Chargement global une seule fois
     return WhisperModel(MODEL_SIZE, device=DEVICE, compute_type="int8")
+
+def trigger_nextcloud_scan():
+    """Demande à Nextcloud de réindexer le dossier de l'utilisateur."""
+    subprocess.run([
+        "docker", "exec", "-u", "www-data", "nextcloud_app",
+        "php", "occ", "files:scan", "--path=/Athnor/files/chapitres_ecrits"
+    ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 def traiter_audios(model):
     for d in [DOSSIER_TEXTES, DOSSIER_ARCHIVES]:
@@ -58,6 +66,9 @@ def traiter_audios(model):
         chemin_txt = os.path.join(DOSSIER_TEXTES, nom_txt)
         with open(chemin_txt, "w", encoding="utf-8") as f:
             f.write(texte_propre.strip())
+
+	# Réindexe les fichiers .txt dans  Nextcloud
+	trigger_nextcloud_scan()
 
         # Archivage Audio
         shutil.move(chemin_audio, os.path.join(DOSSIER_ARCHIVES, nom_fichier))
