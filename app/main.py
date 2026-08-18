@@ -2,6 +2,7 @@ import os
 import glob
 import shutil
 import time
+import subprocess
 from faster_whisper import WhisperModel
 
 # --- CONFIGURATION VIA VARIABLES D'ENVIRONNEMENT ---
@@ -28,30 +29,50 @@ def is_file_ready(file_path, wait_time=2):
     except OSError:
         return False
 
+def trigger_nextcloud_scan():
+    """Demande à Nextcloud de réindexer les dossiers de l'utilisateur Athnor."""
+    try:
+        subprocess.run(
+            [
+                "docker", "exec", "-u", "www-data", "nextcloud_app",
+                "php", "occ", "files:scan", "--path=/Athnor/files/chapitres_ecrits"
+            ],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
+        subprocess.run(
+            [
+                "docker", "exec", "-u", "www-data", "nextcloud_app",
+                "php", "occ", "files:scan", "--path=/Athnor/files/archives_audio"
+            ],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
+    except Exception as e:
+        print(f"⚠️ Erreur scan Nextcloud : {e}", flush=True)
+
 def traiter_audios(model):
     for d in [DOSSIER_TEXTES, DOSSIER_ARCHIVES]:
         os.makedirs(d, exist_ok=True)
 
-    # Récupérer TOUS les fichiers du dossier sans se soucier des majuscules/minuscules
     extensions_valides = ('.mp3', '.m4a', '.wav', '.flac', '.aac', '.ogg')
     fichiers_audio = []
-    
-    for file in files:
-    full_path = os.path.join(INPUT_DIR, file)
-    
-    # Ne traiter le fichier que s'il a fini d'être écrit sur le disque
-    if is_file_ready(full_path):
-        process_audio(model, full_path)
 
+    # 1. Lister les fichiers audio valides
     if os.path.exists(DOSSIER_SOURCE):
         for f in os.listdir(DOSSIER_SOURCE):
             chemin_complet = os.path.join(DOSSIER_SOURCE, f)
             if os.path.isfile(chemin_complet) and f.lower().endswith(extensions_valides):
-                fichiers_audio.append(chemin_complet)
+                # Vérifier si l'upload du fichier est terminé
+                if is_file_ready(chemin_complet):
+                    fichiers_audio.append(chemin_complet)
 
     if not fichiers_audio:
         return
 
+    # 2. Traitement de chaque fichier prêt
     for chemin_audio in fichiers_audio:
         nom_fichier = os.path.basename(chemin_audio)
         print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Processing : {nom_fichier}", flush=True)
@@ -82,10 +103,13 @@ def traiter_audios(model):
         shutil.move(chemin_audio, os.path.join(DOSSIER_ARCHIVES, nom_fichier))
         print(f"✅ Traité : {nom_txt}", flush=True)
 
+        # Réindexation automatique de Nextcloud
+        trigger_nextcloud_scan()
+
 if __name__ == "__main__":
     print("Démarrage du service de transcription automatique...", flush=True)
     
-    # 1. Charger le modèle au démarrage (téléchargement immédiat)
+    # 1. Charger le modèle au démarrage
     whisper_model = charger_modele()
     print("🚀 Modèle prêt ! Surveillance du dossier en cours...", flush=True)
     
