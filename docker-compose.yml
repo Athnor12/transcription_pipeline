@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # --- SERVICE NEXTCLOUD ---
   nextcloud:
@@ -23,16 +21,29 @@ services:
     build: ./app
     container_name: whisper_transcriber
     restart: unless-stopped
+    runtime: nvidia
+    network_mode: "host"
     environment:
       - PYTHONUNBUFFERED=1
       - MODEL_SIZE=turbo
-      - DEVICE=cpu # Change par "cuda" si tu as une GPU NVIDIA
+      - DEVICE=cuda # Change par "cuda" si tu as une GPU NVIDIA
+      - HF_HOME=/root/.cache/huggingface #Définit explicitement le dossier du cache
+    deploy: # <- Bloc pour GPU
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
     volumes:
+      - ./app:/app
       - ./chapitres_audio:/data/chapitres_audio
       - ./chapitres_ecrits:/data/chapitres_ecrits
       - ./archives_audio:/data/archives_audio
+      - whisper_model_cache:/root/.cache/huggingface # <- Stocke le modèle téléchargé
     depends_on:
       - nextcloud
 
 volumes:
   nextcloud_data:
+  whisper_model_cache:

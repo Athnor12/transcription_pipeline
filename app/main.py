@@ -10,7 +10,8 @@ DOSSIER_SOURCE = os.getenv("DOSSIER_SOURCE", "/data/chapitres_audio")
 DOSSIER_TEXTES = os.getenv("DOSSIER_TEXTES", "/data/chapitres_ecrits")
 DOSSIER_ARCHIVES = os.getenv("DOSSIER_ARCHIVES", "/data/archives_audio")
 MODEL_SIZE = os.getenv("MODEL_SIZE", "turbo") # ou "medium", "small"
-DEVICE = os.getenv("DEVICE", "cpu")
+DEVICE = os.getenv("DEVICE", "cuda")
+COMPUTE_TYPE = os.getenv("COMPUTE_TYPE", "float16")
 
 def charger_modele():
     print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Chargement du modèle Whisper ({MODEL_SIZE} sur {DEVICE})...", flush=True)
