@@ -17,6 +17,16 @@ def charger_modele():
     # Chargement global une seule fois
     return WhisperModel(MODEL_SIZE, device=DEVICE, compute_type="int8")
 
+def is_file_ready(file_path, wait_time=2):
+    """Vérifie si le fichier a fini d'être transféré/écrit sur le disque."""
+    try:
+        initial_size = os.path.getsize(file_path)
+        time.sleep(wait_time)
+        final_size = os.path.getsize(file_path)
+        # Si la taille n'a pas bougé et est supérieure à 0, le transfert est fini
+        return initial_size == final_size and final_size > 0
+    except OSError:
+        return False
 
 def traiter_audios(model):
     for d in [DOSSIER_TEXTES, DOSSIER_ARCHIVES]:
@@ -26,6 +36,13 @@ def traiter_audios(model):
     extensions_valides = ('.mp3', '.m4a', '.wav', '.flac', '.aac', '.ogg')
     fichiers_audio = []
     
+    for file in files:
+    full_path = os.path.join(INPUT_DIR, file)
+    
+    # Ne traiter le fichier que s'il a fini d'être écrit sur le disque
+    if is_file_ready(full_path):
+        process_audio(model, full_path)
+
     if os.path.exists(DOSSIER_SOURCE):
         for f in os.listdir(DOSSIER_SOURCE):
             chemin_complet = os.path.join(DOSSIER_SOURCE, f)
