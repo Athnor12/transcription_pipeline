@@ -1,0 +1,10 @@
+# Ignorer les fichiers de variables d'environnement contenant des secrets
+.env
+*.env
+
+# Ignorer d'éventuels dossiers de données ou de logs locaux
+data/
+config/
+*.db
+*.log
+

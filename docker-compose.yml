@@ -1,0 +1,28 @@
+services:
+  nextcloud:
+    image: nextcloud:stable-apache
+    container_name: nextcloud_app
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      - NEXTCLOUD_ADMIN_USER=${NEXTCLOUD_ADMIN_USER}
+      - NEXTCLOUD_ADMIN_PASSWORD=${NEXTCLOUD_ADMIN_PASSWORD}
+    volumes:
+      - nextcloud_data:/var/www/html
+      - /home/athnor/whisper-pipeline/chapitres_audio:/var/www/html/data/Athnor/files/chapitres_audio
+      - /home/athnor/whisper-pipeline/chapitres_ecrits:/var/www/html/data/Athnor/files/chapitres_ecrits
+      - /home/athnor/whisper-pipeline/archives_audio:/var/www/html/data/Athnor/files/archives_audio
+      - /home/athnor/pipeline-ollama/Photos_a_transcrire:/var/www/html/data/Athnor/files/Photos_a_transcrire
+      - /home/athnor/pipeline-ollama/Transcriptions_photos_MD:/var/www/html/data/Athnor/files/Transcriptions_photos_MD
+    networks:
+      - homelab-network
+
+networks:
+  homelab-network:
+    external: true
+
+volumes:
+  nextcloud_data:
+    external: true
+    name: nextcloud-server_data
