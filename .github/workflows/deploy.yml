@@ -1,0 +1,47 @@
+name: CI/CD Pipeline Ollama
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted  # <-- Exécution directement sur ton serveur homelab
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Créer le fichier .env
+        run: |
+          cat <<EOF > .env
+          NEXTCLOUD_URL=${{ secrets.NEXTCLOUD_URL }}
+          NEXTCLOUD_USER=${{ secrets.NEXTCLOUD_USER }}
+          NEXTCLOUD_PASSWORD=${{ secrets.NEXTCLOUD_PASSWORD }}
+          INPUT_DIR=Photos_a_transcrire
+          OUTPUT_DIR=Transcriptions_photos_MD
+          OLLAMA_URL=http://pipeline_ollama_server:11434
+          OLLAMA_MODEL=moondream
+          EOF
+
+      - name: Configurer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Installer les outils de vérification
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8
+
+      - name: Vérifier la syntaxe Python (Flake8)
+        run: |
+          flake8 app/main.py --count --select=E9,F63,F7,F82 --show-source --statistics
+
+      - name: Valider la syntaxe Docker Compose
+        run: |
+          docker compose config
+
+      - name: Déployer l'application
+        run: |
+          docker compose up -d --build
