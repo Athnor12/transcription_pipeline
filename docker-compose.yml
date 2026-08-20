@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # --- 1. NEXTCLOUD ---
+  nextcloud:
+    image: nextcloud:stable-apache
+    container_name: nextcloud_app
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      - NEXTCLOUD_ADMIN_USER=${NEXTCLOUD_ADMIN_USER}
+      - NEXTCLOUD_ADMIN_PASSWORD=${NEXTCLOUD_ADMIN_PASSWORD}
+    volumes:
+      - nextcloud_data:/var/www/html
+      - ./whisper/chapitres_audio:/var/www/html/data/Athnor/files/chapitres_audio
+      - ./whisper/chapitres_ecrits:/var/www/html/data/Athnor/files/chapitres_ecrits
+      - ./whisper/archives_audio:/var/www/html/data/Athnor/files/archives_audio
+      - ./pipeline-gemini/Photos_a_transcrire:/var/www/html/data/Athnor/files/Photos_a_transcrire
+      - ./pipeline-gemini/Transcriptions_photos_MD:/var/www/html/data/Athnor/files/Transcriptions_photos_MD
+
+  # --- 2. WORKER GEMINI (VISION) ---
+  transcription-worker:
+    build: ./pipeline-gemini
+    container_name: pipeline_transcription_worker
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./pipeline-gemini/app:/app
+    depends_on:
+      - nextcloud
+
+  # --- 3. WORKER WHISPER ---
+  whisper-transcriber:
+    build: ./whisper/app
+    container_name: whisper_transcriber
+    restart: unless-stopped
+    runtime: nvidia
+    env_file:
+      - .env
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    volumes:
+      - ./whisper/app:/app
+      - ./whisper/chapitres_audio:/data/chapitres_audio
+      - ./whisper/chapitres_ecrits:/data/chapitres_ecrits
+      - ./whisper/archives_audio:/data/archives_audio
+      - whisper_model_cache:/root/.cache/huggingface
+    depends_on:
+      - nextcloud
+
+volumes:
+  whisper_model_cache:
+  nextcloud_data:
+    external: true
+    name: nextcloud-server_data

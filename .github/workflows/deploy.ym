@@ -1,0 +1,74 @@
+name: CI/CD Pipeline Transcription Stack
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  # 1. Tests et vérifications syntaxiques sur les runners GitHub Cloud
+  lint-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Configurer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Installer les outils de vérification
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8
+
+      - name: Vérifier la syntaxe Python (Flake8)
+        run: |
+          # Vérification de l'ensemble des scripts Python dans les sous-dossiers
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+  # 2. Déploiement direct sur le Homelab via le Self-Hosted Runner
+  deploy-homelab:
+    needs: lint-and-validate
+    runs-on: self-hosted
+    steps:
+      - name: Récupérer la dernière version du code
+        uses: actions/checkout@v4
+
+      - name: Injecter le fichier .env unifié
+        run: |
+          cat <<EOF > .env
+          # Nextcloud Admin
+          NEXTCLOUD_ADMIN_USER=${{ secrets.NEXTCLOUD_ADMIN_USER }}
+          NEXTCLOUD_ADMIN_PASSWORD=${{ secrets.NEXTCLOUD_ADMIN_PASSWORD }}
+
+          # Accès Nextcloud Workers
+          NEXTCLOUD_URL=http://nextcloud_app:80
+          NEXTCLOUD_USER=${{ secrets.NEXTCLOUD_USER }}
+          NEXTCLOUD_PASSWORD=${{ secrets.NEXTCLOUD_PASSWORD }}
+
+          # Worker Ollama
+          OLLAMA_URL=http://pipeline_ollama_server:11434
+          OLLAMA_MODEL=moondream
+          OLLAMA_INPUT_DIR=Photos_a_transcrire
+          OLLAMA_OUTPUT_DIR=Transcriptions_photos_MD
+
+          # Worker Whisper
+          PYTHONUNBUFFERED=1
+          MODEL_SIZE=turbo
+          DEVICE=cuda
+          HF_HOME=/root/.cache/huggingface
+          WHISPER_INPUT_DIR=/chapitres_audio
+          WHISPER_OUTPUT_DIR=/chapitres_ecrits
+          WHISPER_ARCHIVE_DIR=/archives_audio
+          EOF
+
+      - name: Valider la syntaxe Docker Compose
+        run: |
+          docker compose config
+
+      - name: Lancer et mettre à jour la stack Docker
+        run: |
+          docker compose up -d --build
+          docker image prune -f
