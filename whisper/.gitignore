@@ -1,0 +1,15 @@
+# Environnement virtuel et caches Python
+__pycache__/
+*.pyc
+.venv/
+
+# Dossiers de données et médias local
+chapitres_audio/*
+!chapitres_audio/.gitkeep
+chapitres_ecrits/*
+!chapitres_ecrits/.gitkeep
+archives_audio/*
+!archives_audio/.gitkeep
+
+# Clés et configurations locales
+.env

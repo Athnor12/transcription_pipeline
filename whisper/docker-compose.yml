@@ -1,0 +1,31 @@
+services:
+  # --- SERVICE WHISPER PIPELINE ---
+  whisper-transcriber:
+    build: ./app
+    container_name: whisper_transcriber
+    restart: unless-stopped
+    runtime: nvidia
+    networks:
+      - homelab-network
+    env_file:
+      - .env
+    deploy: # <- Bloc pour GPU
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    volumes:
+      - ./app:/app
+      - ./chapitres_audio:/data/chapitres_audio
+      - ./chapitres_ecrits:/data/chapitres_ecrits
+      - ./archives_audio:/data/archives_audio
+      - whisper_model_cache:/root/.cache/huggingface # <- Stocke le modèle téléchargé
+
+networks:
+  homelab-network:
+    external: true
+
+volumes:
+  whisper_model_cache:
