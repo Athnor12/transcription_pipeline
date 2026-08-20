@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # --- 1. NEXTCLOUD ---
   nextcloud:
@@ -20,17 +18,17 @@ services:
       - ./pipeline-gemini/Transcriptions_photos_MD:/var/www/html/data/Athnor/files/Transcriptions_photos_MD
 
   # --- 2. WORKER GEMINI (VISION) ---
-  transcription-worker:
-    build: ./pipeline-gemini
-    container_name: pipeline_transcription_worker
-    restart: unless-stopped
-    env_file:
-      - .env
-    volumes:
-      - ./pipeline-gemini/app:/app
-    depends_on:
-      - nextcloud
-
+#  transcription-worker:
+#    build: ./pipeline-gemini
+#    container_name: pipeline_transcription_worker
+#    restart: unless-stopped
+#    env_file:
+#      - .env
+#    volumes:
+#      - ./pipeline-gemini/app:/app
+#    depends_on:
+#      - nextcloud
+#
   # --- 3. WORKER WHISPER ---
   whisper-transcriber:
     build: ./whisper/app
