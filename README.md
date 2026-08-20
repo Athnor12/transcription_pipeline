@@ -6,4 +6,5 @@ Le système s'intègre directement avec **Nextcloud** pour offrir un flux de tra
 déposez vos fichiers multimédias dans des dossiers synchronisés, et récupérez vos fichiers Markdown/Texte générés automatiquement.
 
 ---
-<img width="738" height="275" alt="grafik" src="https://github.com/user-attachments/assets/98418871-49f3-4e3e-8298-117b0c7de5c4" />
+<img width="731" height="282" alt="grafik" src="https://github.com/user-attachments/assets/0cb67049-8a23-4c30-b81d-50a140d71c7f" />
+
