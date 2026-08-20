@@ -6,16 +6,4 @@ Le système s'intègre directement avec **Nextcloud** pour offrir un flux de tra
 déposez vos fichiers multimédias dans des dossiers synchronisés, et récupérez vos fichiers Markdown/Texte générés automatiquement.
 
 ---
-
-## Architecture du Projet
-
-transcription_pipeline/
-├── nextcloud/            # Serveur Nextcloud (interface utilisateur & stockage)
-├── whisper/              # Service de transcription audio local (Faster-Whisper / GPU)
-│   └── app/
-│       └── main.py       # Worker Python surveillant les dossiers audio
-├── pipeline-gemini/      # Service d'OCR / Vision via l'API Google Gemini
-│   └── app/
-│       └── main.py       # Worker Python surveillant les dossiers d'images
-├── docker-compose.yml    # Orchestration unifiée de la stack Docker
-└── .env                  # Variables d'environnement & clés API
+<img width="738" height="275" alt="grafik" src="https://github.com/user-attachments/assets/98418871-49f3-4e3e-8298-117b0c7de5c4" />
