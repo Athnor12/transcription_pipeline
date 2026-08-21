@@ -2,7 +2,6 @@ import os
 import glob
 import shutil
 import time
-import subprocess
 from faster_whisper import WhisperModel
 
 # --- CONFIGURATION VIA VARIABLES D'ENVIRONNEMENT ---
@@ -28,30 +27,6 @@ def is_file_ready(file_path, wait_time=2):
         return initial_size == final_size and final_size > 0
     except OSError:
         return False
-
-def trigger_nextcloud_scan():
-    """Demande à Nextcloud de réindexer les dossiers de l'utilisateur Athnor."""
-    try:
-        subprocess.run(
-            [
-                "docker", "exec", "-u", "www-data", "nextcloud_app",
-                "php", "occ", "files:scan", "--path=/Athnor/files/chapitres_ecrits"
-            ],
-            check=False,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
-        )
-        subprocess.run(
-            [
-                "docker", "exec", "-u", "www-data", "nextcloud_app",
-                "php", "occ", "files:scan", "--path=/Athnor/files/archives_audio"
-            ],
-            check=False,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
-        )
-    except Exception as e:
-        print(f"⚠️ Erreur scan Nextcloud : {e}", flush=True)
 
 def traiter_audios(model):
     for d in [DOSSIER_TEXTES, DOSSIER_ARCHIVES]:
@@ -93,18 +68,15 @@ def traiter_audios(model):
         # Nettoyage automatique des dialogues
         texte_propre = texte_complet.replace(" tiret", "\n—").replace(" Tiret", "\n—")
 
-        # Sauvegarde TXT
-        nom_txt = os.path.splitext(nom_fichier)[0] + ".txt"
+        # Sauvegarde MD
+        nom_txt = os.path.splitext(nom_fichier)[0] + ".md"
         chemin_txt = os.path.join(DOSSIER_TEXTES, nom_txt)
         with open(chemin_txt, "w", encoding="utf-8") as f:
             f.write(texte_propre.strip())
 
         # Archivage Audio
         shutil.move(chemin_audio, os.path.join(DOSSIER_ARCHIVES, nom_fichier))
-        print(f"✅ Traité : {nom_txt}", flush=True)
-
-        # Réindexation automatique de Nextcloud
-        trigger_nextcloud_scan()
+        print(f"✅ Traité : {nom_txt} (Indexation gérée par Cron)", flush=True)
 
 if __name__ == "__main__":
     print("Démarrage du service de transcription automatique...", flush=True)

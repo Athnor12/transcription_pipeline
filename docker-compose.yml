@@ -21,6 +21,7 @@ services:
 #  transcription-worker:
 #    build: ./pipeline-gemini
 #    container_name: pipeline_transcription_worker
+#    user: "33:33"
 #    restart: unless-stopped
 #    env_file:
 #      - .env
@@ -33,8 +34,11 @@ services:
   whisper-transcriber:
     build: ./whisper/app
     container_name: whisper_transcriber
+    user: "33:33"
     restart: unless-stopped
     runtime: nvidia
+    environment:
+      - HF_HOME=/tmp/huggingface
     env_file:
       - .env
     deploy:
@@ -49,7 +53,7 @@ services:
       - ./whisper/chapitres_audio:/data/chapitres_audio
       - ./whisper/chapitres_ecrits:/data/chapitres_ecrits
       - ./whisper/archives_audio:/data/archives_audio
-      - whisper_model_cache:/root/.cache/huggingface
+      - whisper_model_cache:/tmp/huggingface
     depends_on:
       - nextcloud
 
