@@ -15,7 +15,7 @@ COMPUTE_TYPE = os.getenv("COMPUTE_TYPE", "float16")
 def charger_modele():
     print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Chargement du modèle Whisper ({MODEL_SIZE} sur {DEVICE})...", flush=True)
     # Chargement global une seule fois
-    return WhisperModel(MODEL_SIZE, device=DEVICE, compute_type="int8")
+    return WhisperModel(MODEL_SIZE, device=DEVICE, compute_type="int8_float16")
 
 def is_file_ready(file_path, wait_time=2):
     """Vérifie si le fichier a fini d'être transféré/écrit sur le disque."""

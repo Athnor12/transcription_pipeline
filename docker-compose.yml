@@ -34,11 +34,13 @@ services:
   whisper-transcriber:
     build: ./whisper/app
     container_name: whisper_transcriber
+    network_mode: "host"
     user: "33:33"
     restart: unless-stopped
     runtime: nvidia
     environment:
       - HF_HOME=/tmp/huggingface
+      - TZ=Europe/Paris
     env_file:
       - .env
     deploy:
