@@ -3,7 +3,8 @@ name: CI Pipeline - Quality & Linting
 on:
   push:
     branches: [ "main", "develop" ]
-  pull_request: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   lint-and-test:
@@ -21,11 +22,11 @@ jobs:
       - name: Installer les outils de contrôle de qualité
         run: |
           python -m pip install --upgrade pip
-          pip install flake8 pytest yamlint
+          pip install flake8 pytest yamllint
 
       - name: Vérifier la syntaxe des fichiers YAML
         run: |
-          yamlint-d "{extends: relaxed, rules: {line-length: {max: 120}}}" .
+          yamllint-d "{extends: relaxed, rules: {line-length: {max: 120}}}" .
 
       - name: Analyser le code Python avec Flake8 (Linter)
         run: |
