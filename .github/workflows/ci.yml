@@ -3,7 +3,7 @@ name: CI Pipeline - Quality & Linting
 on:
   push:
     branches: [ "main", "develop" ]
-  pull_requests: [ "main" ]
+  pull_request: [ "main" ]
 
 jobs:
   lint-and-test:
