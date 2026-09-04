@@ -1,0 +1,45 @@
+name: CI Pipeline - Quality & Linting
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_requests: [ "main" ]
+
+jobs:
+  lint-and-test:
+    runs-on: self-hosted
+
+    steps:
+      - name: Récupérer le code source
+        uses: actions/checkout@v4
+
+      - name: Configurer Python 3.11
+        uses actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Installer les outils de contrôle de qualité
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pytest yamlint
+
+      - name: Vérifier la syntaxe des fichiers YAML
+        run: |
+          yamlint-d "{extends: relaxed, rules: {line-length: {max: 120}}}" .
+
+      - name: Analyser le code Python avec Flake8 (Linter)
+        run: |
+          # Arrête le build s'il y a des erreurs de syntaxe Python ou des variables non définies
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # Avertissement de style (complexité, lignes trop longues, etc.)
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Exécuter les tests unitaires avec Pytest
+        run: |
+          # N'exécute pytest que si un dossier de tests existe
+          if [ -d "tests" ]; then
+            pytest
+          else
+            echo "Aucun dossier tests/ trouvé, passage de l'étape pytest."
+          fi
+
