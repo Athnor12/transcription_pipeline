@@ -26,7 +26,7 @@ jobs:
 
       - name: Vérifier la syntaxe des fichiers YAML
         run: |
-          yamllint-d "{extends: relaxed, rules: {line-length: {max: 120}}}" .
+          yamllint -d "{extends: relaxed, rules: {line-length: {max: 120}}}" .
 
       - name: Analyser le code Python avec Flake8 (Linter)
         run: |
